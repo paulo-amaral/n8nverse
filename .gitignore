@@ -1,0 +1,10 @@
+.DS_Store
+.env
+data/
+certs/
+local-files/
+bin/
+
+# macOS and editor noise
+.idea/
+.vscode/

@@ -1,0 +1,41 @@
+services:
+  n8n:
+    image: n8nio/n8n:2.14.1
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      NODE_ENV: production
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: n8n.local
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      WEBHOOK_URL: https://n8n.local/
+      N8N_PROXY_HOPS: 1
+      GENERIC_TIMEZONE: Asia/Dili
+      TZ: Asia/Dili
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: ${DB_POSTGRESDB_HOST}
+      DB_POSTGRESDB_PORT: ${DB_POSTGRESDB_PORT}
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/n8n:/home/node/.n8n
+      - ./local-files:/files
+
+  caddy:
+    image: caddy:2
+    restart: always
+    depends_on:
+      - n8n
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+      - ./data/caddy/data:/data
+      - ./data/caddy/config:/config
