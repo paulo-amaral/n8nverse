@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env for validation
+        run: cp .env.example .env
+
+      - name: Validate Docker Compose
+        run: docker compose config
+
+      - name: Check tracked files for local secrets
+        run: |
+          set -eu
+          git ls-files | grep -E '(^|/)\.env$|(^|/).*\.pem$|(^|/).*\.key$|(^|/).*\.crt$|(^|/)data/|(^|/)certs/|(^|/)local-files/' && exit 1 || true
+
+      - name: Ensure n8n image is pinned
+        run: |
+          set -eu
+          grep -Eq 'image:\s+n8nio/n8n:[^[:space:]]+' compose.yaml

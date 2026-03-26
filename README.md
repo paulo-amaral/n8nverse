@@ -99,6 +99,13 @@ If you clone this repository elsewhere, start from the example file:
 cp .env.example .env
 ```
 
+Recommended local git safety setup:
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
 Important:
 - Replace `N8N_ENCRYPTION_KEY` with a long random value.
 - If PostgreSQL later requires a password, set `POSTGRES_PASSWORD`.
@@ -266,6 +273,22 @@ docker compose restart caddy
 ```
 
 If the repository is cloned on a different machine, install `mkcert` there first or place a local `mkcert` binary under `bin/`.
+
+## Git and security safeguards
+
+This repository includes a few guardrails for local development:
+- `.gitignore` excludes `.env`, `data/`, `certs/`, `local-files/`, and `bin/`
+- `.env.example` provides a safe template for configuration
+- `.gitattributes` normalizes text files and marks certificate material as binary
+- `.githooks/pre-commit` blocks common secret and local-only files from being committed
+- `.github/workflows/ci.yml` validates the Compose file and checks for tracked secret-like files
+
+Enable the repository-local git hook after cloning:
+
+```bash
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
 
 ### Development note
 
