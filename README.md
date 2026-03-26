@@ -221,6 +221,21 @@ See `k8s/README.md` for the intended assumptions and flow.
 
 This project pins the n8n image version in `compose.yaml`. When you want to update in the future, review the pinned tag first and then refresh the stack in a controlled way.
 
+## Release strategy
+
+This repository now uses a standard public release approach:
+- Semantic Versioning tags such as `v0.1.0`
+- annotated git tags for releases
+- `CHANGELOG.md` to track user-visible changes
+
+Guidelines:
+- use `MAJOR` for breaking changes
+- use `MINOR` for backward-compatible features
+- use `PATCH` for backward-compatible fixes
+- use `0.x.y` while the project is still evolving rapidly
+
+Older milestone tags such as `m0001` and release-like tags such as `r0001` are legacy markers. Going forward, prefer SemVer tags only.
+
 Recommended update flow for this Docker Compose setup:
 
 ```bash
