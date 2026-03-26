@@ -257,6 +257,10 @@ https://n8n.localhost
 
 This setup uses Caddy's local CA via `tls internal`. The practical goal is a trusted local HTTPS connection without browser warnings.
 
+Example sign-in screen:
+
+![n8n localhost sign-in](docs/images/n8n-localhost-signin.png)
+
 The Caddy container still stores runtime state under:
 - `data/caddy/data`
 - `data/caddy/config`
