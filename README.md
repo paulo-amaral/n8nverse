@@ -2,9 +2,6 @@
 
 This directory runs `n8n` and `caddy` in Docker and connects n8n to a PostgreSQL instance running on the host machine, outside Docker.
 
-If this project helps you, you can support the work here:
-- Buy Me a Coffee: https://buymeacoffee.com/
-
 Security posture:
 - this repository is intended for local development only
 - the current PostgreSQL examples are convenience defaults, not production-safe defaults
