@@ -1,5 +1,5 @@
 n8n.localhost {
-	tls /certs/n8n.localhost.pem /certs/n8n.localhost-key.pem
+	tls internal
 
 	reverse_proxy n8n:5678 {
 		header_up Host {host}

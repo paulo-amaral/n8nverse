@@ -20,7 +20,7 @@ It does not deploy PostgreSQL inside the cluster.
 
 - your cluster already has an Ingress controller, such as ingress-nginx
 - your cluster can reach the PostgreSQL host configured in the secret
-- you will create a TLS secret from a locally trusted certificate, for example with `mkcert`
+- TLS for local Kubernetes is controller-specific and should be handled by your local Ingress setup
 
 ## Quick start
 
@@ -50,15 +50,7 @@ Then apply it:
 kubectl apply -f k8s/secret.yaml
 ```
 
-3. Create a TLS secret from your local certificate:
-
-```bash
-kubectl -n n8n create secret tls n8n-localhost-tls \
-  --cert=certs/n8n.localhost.pem \
-  --key=certs/n8n.localhost-key.pem
-```
-
-4. Apply the workload:
+3. Apply the workload:
 
 ```bash
 kubectl apply -f k8s/pvc.yaml
@@ -67,6 +59,6 @@ kubectl apply -f k8s/service.yaml
 kubectl apply -f k8s/ingress.yaml
 ```
 
-5. Make sure `n8n.localhost` resolves to your Ingress endpoint locally.
+4. Make sure `n8n.localhost` resolves to your Ingress endpoint locally.
 
 For many local clusters, `.localhost` already resolves locally without editing `/etc/hosts`.

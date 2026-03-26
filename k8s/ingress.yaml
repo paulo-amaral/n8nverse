@@ -7,10 +7,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "64m"
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - n8n.localhost
-      secretName: n8n-localhost-tls
   rules:
     - host: n8n.localhost
       http:
