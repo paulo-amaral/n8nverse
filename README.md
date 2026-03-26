@@ -20,6 +20,7 @@ Access URLs:
 - `data/caddy/data`: Caddy certificates and CA state
 - `data/caddy/config`: Caddy persistent config state
 - `local-files`: local filesystem mount available to workflows
+- `k8s/`: optional Kubernetes manifests for running n8n with an external PostgreSQL database
 
 ## Prerequisites
 
@@ -84,6 +85,13 @@ Default values used by the script:
 - app database: `n8n`
 - app user: `n8n_app`
 - app password: `change_me_to_a_real_password`
+- `N8N_ENCRYPTION_KEY`: generated automatically with `openssl rand -hex 32`
+
+What the script does:
+- creates or updates the PostgreSQL app user
+- creates the `n8n` database if missing
+- copies `.env.example` to `.env` if `.env` does not exist yet
+- updates `.env` with `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `N8N_ENCRYPTION_KEY` using `sed`
 
 You can override them when needed:
 
@@ -93,8 +101,6 @@ APP_USER=n8n_app \
 APP_PASSWORD='replace_me' \
 scripts/create-postgres-db.sh
 ```
-
-After running it, update your local `.env` so it matches the created database user and password.
 
 ## Local hosts entry
 
@@ -190,6 +196,39 @@ Validate the compose file before starting if needed:
 docker compose config
 ```
 
+## Kubernetes option
+
+This repository also includes a minimal Kubernetes deployment option under `k8s/`.
+
+What it covers:
+- `n8n` deployment
+- PVC for persistent n8n data
+- ClusterIP service
+- Ingress for `https://n8n.local`
+- external PostgreSQL via Kubernetes Secret
+
+What it does not cover:
+- PostgreSQL inside the cluster
+- cert-manager automation
+- a bundled Ingress controller
+
+Quick start:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+cp k8s/secret.example.yaml k8s/secret.yaml
+kubectl apply -f k8s/secret.yaml
+kubectl -n n8n create secret tls n8n-local-tls \
+  --cert=certs/n8n.local.pem \
+  --key=certs/n8n.local-key.pem
+kubectl apply -f k8s/pvc.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+```
+
+See `k8s/README.md` for the intended assumptions and flow.
+
 ## Future updates and next steps
 
 This project pins the n8n image version in `compose.yaml`. When you want to update in the future, review the pinned tag first and then refresh the stack in a controlled way.
@@ -228,7 +267,7 @@ Open:
 https://n8n.local
 ```
 
-This setup now uses `mkcert` certificates mounted into Caddy. Your browser will show the normal secure lock once the `mkcert` local CA is trusted by macOS.
+This setup uses `mkcert` certificates mounted into Caddy. The practical goal is a trusted local HTTPS connection without browser warnings.
 
 The Caddy container still stores runtime state under:
 - `data/caddy/data`
@@ -271,7 +310,10 @@ Project-local certificate files:
 These local certificate files are intentionally not committed to git.
 
 mkcert CA root:
-- `/Users/paulo/Library/Application Support/mkcert/rootCA.pem`
+
+```bash
+mkcert -CAROOT
+```
 
 ### Trusting the mkcert local CA
 
@@ -279,10 +321,10 @@ If the browser shows a certificate warning, the `mkcert` CA is not yet trusted b
 
 Only trust this CA on a machine you control for local development. Do not distribute your local `mkcert` CA or private key.
 
-You can inspect the generated root certificate here:
+You can inspect the generated root certificate by first locating the CA root directory:
 
-```text
-/Users/paulo/Library/Application Support/mkcert/rootCA.pem
+```bash
+mkcert -CAROOT
 ```
 
 If you need to verify that the local cert files exist:
@@ -295,12 +337,12 @@ Once the CA is trusted by the host, `https://n8n.local` should load with the nor
 
 ### Green lock on macOS
 
-If you want the browser to show the normal secure lock locally, the `mkcert` CA used to sign `n8n.local` must be trusted by macOS.
+If you want the browser to trust `https://n8n.local`, the `mkcert` CA used to sign it must be trusted by macOS.
 
 The relevant CA file is:
 
-```text
-/Users/paulo/Library/Application Support/mkcert/rootCA.pem
+```bash
+$(mkcert -CAROOT)/rootCA.pem
 ```
 
 You can trust it in the login keychain with:
@@ -310,7 +352,7 @@ security add-trusted-cert \
   -d \
   -r trustRoot \
   -k ~/Library/Keychains/login.keychain-db \
-  "/Users/paulo/Library/Application Support/mkcert/rootCA.pem"
+  "$(mkcert -CAROOT)/rootCA.pem"
 ```
 
 After that:
@@ -324,16 +366,16 @@ If the lock still does not appear:
 
 ### Regenerating local certificates
 
-The repository includes a local `mkcert` binary in `bin/mkcert`.
+Make sure `mkcert` is installed on your machine first.
 
 To regenerate the certificate for `n8n.local`:
 
 ```bash
-./bin/mkcert -cert-file certs/n8n.local.pem -key-file certs/n8n.local-key.pem n8n.local
+mkcert -cert-file certs/n8n.local.pem -key-file certs/n8n.local-key.pem n8n.local
 docker compose restart caddy
 ```
 
-If the repository is cloned on a different machine, install `mkcert` there first or place a local `mkcert` binary under `bin/`.
+If the repository is cloned on a different machine, install `mkcert` there and regenerate the local certificates.
 
 ## Git and security safeguards
 
@@ -355,7 +397,7 @@ chmod +x .githooks/pre-commit
 
 ### Development note
 
-This certificate model is for local development only. Do not reuse Caddy's internal CA setup as-is for public production traffic.
+This certificate model is for local development only. Do not reuse this local `mkcert` CA setup for public production traffic.
 
 ## Persistence
 
@@ -421,7 +463,7 @@ If `curl -k --resolve n8n.local:443:127.0.0.1 https://n8n.local` works but `curl
 
 ### Certificate warning in browser
 
-This is expected until you trust the local CA generated by `mkcert`. The relevant CA file is `/Users/paulo/Library/Application Support/mkcert/rootCA.pem`.
+This is expected until you trust the local CA generated by `mkcert`. Use `mkcert -CAROOT` to locate the CA directory on your machine.
 
 ### Caddy starts but n8n is unavailable
 
