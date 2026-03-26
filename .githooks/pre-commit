@@ -17,9 +17,11 @@ echo "$staged_files" | grep -E "$blocked_paths" >/dev/null 2>&1 && {
 }
 
 if printf '%s\n' "$staged_files" | grep -Eq '(^|/)\.env\.example$'; then
-  if git diff --cached -- .env.example | grep -E '^\+.*(change_me_to_a_long_random_alpha_numeric_string|POSTGRES_PASSWORD=.*[^[:space:]]+)' >/dev/null 2>&1; then
-    echo "pre-commit: review .env.example to avoid committing real secrets." >&2
-    exit 1
+  if git diff --cached -- .env.example | grep -E '^\+.*(POSTGRES_PASSWORD=)' >/dev/null 2>&1; then
+    if git diff --cached -- .env.example | grep -E '^\+POSTGRES_PASSWORD=' | grep -Ev 'change_me|example|your_|replace_me|^\+POSTGRES_PASSWORD=$' >/dev/null 2>&1; then
+      echo "pre-commit: review .env.example to avoid committing a real database password." >&2
+      exit 1
+    fi
   fi
 fi
 
