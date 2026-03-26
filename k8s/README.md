@@ -3,7 +3,7 @@
 This directory provides a minimal Kubernetes deployment option for `n8n` using:
 - external PostgreSQL
 - persistent storage for `/home/node/.n8n`
-- an Ingress for `https://n8n.local`
+- an Ingress for `https://n8n.localhost`
 
 It does not deploy PostgreSQL inside the cluster.
 
@@ -14,7 +14,7 @@ It does not deploy PostgreSQL inside the cluster.
 - `pvc.yaml`: persistent volume claim for n8n data
 - `deployment.yaml`: n8n deployment
 - `service.yaml`: ClusterIP service for n8n
-- `ingress.yaml`: ingress for `n8n.local`
+- `ingress.yaml`: ingress for `n8n.localhost`
 
 ## Assumptions
 
@@ -53,9 +53,9 @@ kubectl apply -f k8s/secret.yaml
 3. Create a TLS secret from your local certificate:
 
 ```bash
-kubectl -n n8n create secret tls n8n-local-tls \
-  --cert=certs/n8n.local.pem \
-  --key=certs/n8n.local-key.pem
+kubectl -n n8n create secret tls n8n-localhost-tls \
+  --cert=certs/n8n.localhost.pem \
+  --key=certs/n8n.localhost-key.pem
 ```
 
 4. Apply the workload:
@@ -67,6 +67,6 @@ kubectl apply -f k8s/service.yaml
 kubectl apply -f k8s/ingress.yaml
 ```
 
-5. Make sure `n8n.local` resolves to your Ingress endpoint locally.
+5. Make sure `n8n.localhost` resolves to your Ingress endpoint locally.
 
-For many local clusters, mapping `127.0.0.1 n8n.local` in `/etc/hosts` is still enough.
+For many local clusters, `.localhost` already resolves locally without editing `/etc/hosts`.

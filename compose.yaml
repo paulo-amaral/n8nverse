@@ -9,10 +9,10 @@ services:
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
-      N8N_HOST: n8n.local
+      N8N_HOST: n8n.localhost
       N8N_PORT: 5678
       N8N_PROTOCOL: https
-      WEBHOOK_URL: https://n8n.local/
+      WEBHOOK_URL: https://n8n.localhost/
       N8N_PROXY_HOPS: 1
       GENERIC_TIMEZONE: Asia/Dili
       TZ: Asia/Dili
